@@ -3,3 +3,11 @@ __pycache__/
 *.pyc
 .env
 .DS_Store
+
+# Sensitive local secrets
+.env.local
+.env.*.local
+*.pem
+*.key
+*.jks
+*.p12

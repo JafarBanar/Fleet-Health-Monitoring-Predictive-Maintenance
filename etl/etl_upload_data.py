@@ -1,3 +1,4 @@
+import os
 
 import pandas as pd
 import pyodbc
@@ -6,11 +7,14 @@ import pyodbc
 df = pd.read_csv("telemetry_data.csv")
 
 # SQL Server connection info
-server = "fleetserver2.database.windows.net"
-database = "fleettelemetrydb"
-username = "fleetadmin"
-password = "CHANGE_ME_SQL_PASSWORD"
-driver = "{ODBC Driver 17 for SQL Server}"
+server = os.getenv("SQL_SERVER", "fleetserver2.database.windows.net")
+database = os.getenv("SQL_DATABASE", "fleettelemetrydb")
+username = os.getenv("SQL_USER", "fleetadmin")
+password = os.getenv("SQL_PASSWORD")
+driver = os.getenv("SQL_DRIVER", "{ODBC Driver 17 for SQL Server}")
+
+if not password:
+    raise RuntimeError("Missing SQL_PASSWORD environment variable.")
 
 # Build connection string
 conn_str = (
