@@ -1,13 +1,16 @@
-
+import os
 import pandas as pd
 from azure.storage.blob import BlobServiceClient
 from sqlalchemy import create_engine
 import urllib
 
 # === Azure Blob Storage Setup ===
-BLOB_CONNECTION_STRING = "DefaultEndpointsProtocol=https;AccountName=<YOUR_ACCOUNT_NAME>;AccountKey=<YOUR_ACCOUNT_KEY>;EndpointSuffix=core.windows.net"
-BLOB_CONTAINER_NAME = "raw-telemetry"
-BLOB_FILE_NAME = "telemetry_data.csv"
+BLOB_CONNECTION_STRING = os.getenv("BLOB_CONNECTION_STRING")
+BLOB_CONTAINER_NAME = os.getenv("BLOB_CONTAINER_NAME", "raw-telemetry")
+BLOB_FILE_NAME = os.getenv("BLOB_FILE_NAME", "telemetry_data.csv")
+
+if not BLOB_CONNECTION_STRING:
+    raise ValueError("Missing required env var: BLOB_CONNECTION_STRING")
 
 # Download CSV from Blob
 blob_service_client = BlobServiceClient.from_connection_string(BLOB_CONNECTION_STRING)
@@ -20,11 +23,14 @@ df = pd.read_csv(download_stream)
 df.dropna(subset=["timestamp"], inplace=True)
 
 # === Azure SQL Setup ===
-server = '<YOUR_SQL_SERVER>.database.windows.net'
-database = 'fleettelemetrydb'
-username = '<YOUR_USERNAME>'
-password = 'YOUR_PASSWORD'  # For production, use environment variables or secrets manager
-driver = '{ODBC Driver 17 for SQL Server}'
+server = os.getenv("SQL_SERVER")
+database = os.getenv("SQL_DATABASE", "fleettelemetrydb")
+username = os.getenv("SQL_USER")
+password = os.getenv("SQL_PASSWORD")
+driver = os.getenv("SQL_DRIVER", "{ODBC Driver 17 for SQL Server}")
+
+if not all([server, username, password]):
+    raise ValueError("Missing required SQL env vars: SQL_SERVER, SQL_USER, SQL_PASSWORD")
 
 connection_string = (
     f'DRIVER={driver};'
